@@ -1,0 +1,15 @@
+Target,Model,Accuracy
+Race Winner,Random Forest,1.0
+Race Winner,Hist Gradient Boosting,0.9977220956719818
+Podium,Random Forest,0.9977220956719818
+Podium,Hist Gradient Boosting,0.9977220956719818
+Points Finish,Random Forest,1.0
+Points Finish,Hist Gradient Boosting,1.0
+Top 5,Random Forest,0.9977220956719818
+Top 5,Hist Gradient Boosting,0.9977220956719818
+Top Qualifier,Random Forest,1.0
+Top Qualifier,Hist Gradient Boosting,1.0
+Position Improvement,Random Forest,1.0
+Position Improvement,Hist Gradient Boosting,1.0
+Strong Result,Random Forest,1.0
+Strong Result,Hist Gradient Boosting,1.0

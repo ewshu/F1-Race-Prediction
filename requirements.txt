@@ -1,0 +1,6 @@
+pandas
+requests
+numpy
+matplotlib
+seaborn
+python-dotenv  # for handling API keys if needed
