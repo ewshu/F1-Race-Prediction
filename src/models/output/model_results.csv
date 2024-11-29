@@ -1,15 +1,15 @@
 Target,Model,Accuracy
-Race Winner,Random Forest,1.0
-Race Winner,Hist Gradient Boosting,0.9977220956719818
-Podium,Random Forest,0.9977220956719818
-Podium,Hist Gradient Boosting,0.9977220956719818
-Points Finish,Random Forest,1.0
-Points Finish,Hist Gradient Boosting,1.0
-Top 5,Random Forest,0.9977220956719818
-Top 5,Hist Gradient Boosting,0.9977220956719818
+Race Winner,Random Forest,0.997229916897507
+Race Winner,Hist Gradient Boosting,1.0
+Podium,Random Forest,1.0
+Podium,Hist Gradient Boosting,1.0
+Points Finish,Random Forest,0.9944598337950139
+Points Finish,Hist Gradient Boosting,0.9958448753462604
+Top 5,Random Forest,0.9986149584487535
+Top 5,Hist Gradient Boosting,0.9986149584487535
 Top Qualifier,Random Forest,1.0
 Top Qualifier,Hist Gradient Boosting,1.0
 Position Improvement,Random Forest,1.0
 Position Improvement,Hist Gradient Boosting,1.0
-Strong Result,Random Forest,1.0
-Strong Result,Hist Gradient Boosting,1.0
+Strong Result,Random Forest,0.997229916897507
+Strong Result,Hist Gradient Boosting,0.9986149584487535

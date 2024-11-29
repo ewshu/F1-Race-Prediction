@@ -151,7 +151,7 @@ if __name__ == "__main__":
 
     # Create historical dataset for last 5 years
     current_year = datetime.now().year
-    start_year = current_year - 10  # Collect last 10 years of data
+    start_year = current_year - 40  # Collect last 10 years of data
     print(f"\nCollecting data from {start_year} to {current_year}")
     collector.create_bronze_dataset(start_year, current_year)
 
