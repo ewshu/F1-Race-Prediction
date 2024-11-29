@@ -1,6 +1,10 @@
-pandas
-requests
-numpy
-matplotlib
-seaborn
+pandas~=2.2.3
+requests~=2.32.3
+numpy~=2.1.3
+matplotlib~=3.9.2
+seaborn~=0.13.2
 python-dotenv  # for handling API keys if needed
+joblib~=1.4.2
+plotly~=5.24.1
+streamlit~=1.40.2
+scikit-learn~=1.5.2
