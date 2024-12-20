@@ -1,0 +1,1 @@
+A machine learning system that predicts Formula 1 race outcomes using historical race data and real-time qualifying performance. The project predicts race winners, podium finishes, points finishes, and top 5 placements. Scroll all the way down for Github link. 
