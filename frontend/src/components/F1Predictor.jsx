@@ -156,7 +156,7 @@ const F1Predictor = () => {
   };
 
   try {
-    const response = await fetch('http://localhost:8000/api/predict', {
+    const response = await fetch('https://f1-predictor-backend.onrender.com, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
