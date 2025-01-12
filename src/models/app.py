@@ -1,34 +1,22 @@
-from flask import Flask, request, jsonify, make_response
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 from race_predictions import F1RacePredictor
 import os
 
 app = Flask(__name__)
-
-# Set up CORS more permissively
-CORS(app)
-
-# Additional CORS configuration
-@app.after_request
-def after_request(response):
-    response.headers.add('Access-Control-Allow-Origin', 'https://f1-winner-prediction.vercel.app')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    return response
+CORS(app, resources={
+    r"/*": {
+        "origins": ["https://f1-winner-prediction.vercel.app"],
+        "methods": ["POST", "OPTIONS"],
+        "allow_headers": ["Content-Type"],
+        "max_age": 3600
+    }
+})
 
 predictor = F1RacePredictor()
 
-@app.route('/api/predict', methods=['POST', 'OPTIONS'])
+@app.route('/api/predict', methods=['POST'])
 def predict():
-    # Handle preflight requests
-    if request.method == 'OPTIONS':
-        response = make_response()
-        response.headers.add('Access-Control-Allow-Origin', 'https://f1-winner-prediction.vercel.app')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
-        response.headers.add('Access-Control-Allow-Methods', 'POST')
-        return response
-
     try:
         data = request.json
         print("Received data:", data)  # Debug print
