@@ -135,7 +135,6 @@ const F1Predictor = () => {
       handleChange(field, Number(newValue.toFixed(2)));
     }
   };
-
   const handleSubmit = async () => {
   setLoading(true);
   setError(null);
@@ -152,15 +151,24 @@ const F1Predictor = () => {
     Points: formData.driverPoints,
     laps: formData.laps,
     Constructor_encoded: formData.constructor,
-    raceName_encoded: formData.track
+    raceName_encoded: formData.track,
+    TeamSeasonPoints: formData.teamPoints,
+    TeamAvgPoints: formData.teamAvgPoints,
+    RecentAvgPosition: formData.recentAvgPosition,
+    TrackExperience: formData.trackExperience || 0,
+    AvgTrackPosition: formData.avgTrackPosition || 10
   };
 
+  console.log('Attempting to send request to Heroku');
+
   try {
-    const response = await fetch('https://formula1-50ed9ae2085f.herokuapp.com/api/predict',{
+    console.log('Request data:', requestData);
+
+    const response = await fetch('https://formula1-50ed9ae2085f.herokuapp.com/api/predict', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
+        'Accept': 'application/json'
       },
       body: JSON.stringify(requestData)
     });
@@ -169,21 +177,20 @@ const F1Predictor = () => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.log('Error text:', errorText);
-      throw new Error(`Server error: ${errorText}`);
+      console.log('Error response:', errorText);
+      throw new Error(`Failed to get predictions: ${errorText}`);
     }
 
     const data = await response.json();
-    console.log('Received predictions:', data);
+    console.log('Success! Received data:', data);
     setPredictions(data);
   } catch (err) {
-    console.error('Full error:', err);
+    console.error('Full error details:', err);
     setError(err.message);
   } finally {
     setLoading(false);
   }
 };
-
   // Input field component with increment/decrement buttons
   const NumberInput = ({ label, value, onChange, field, step = 'any', min, max }) => {
     const handleInputChange = (e) => {
