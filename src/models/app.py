@@ -1,24 +1,23 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from race_predictions import F1RacePredictor
+import os
 
 app = Flask(__name__)
-CORS(app, resources={
-    r"/api/*": {
-        "origins": [
-            "https://f1-winner-prediction.vercel.app",
-            "https://f1-winner-prediction-ga6ske9sb-ewshus-projects.vercel.app",
-            "http://localhost:3000"  # Keep this for local development
-        ],
-        "methods": ["POST", "OPTIONS"],
-        "allow_headers": ["Content-Type"]
-    }
-})
+# Replace the complex CORS setup with a simpler one
+CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}})
 
 predictor = F1RacePredictor()
 
-@app.route('/api/predict', methods=['POST'])
+@app.route('/api/predict', methods=['POST', 'OPTIONS'])  # Added OPTIONS
 def predict():
+    if request.method == "OPTIONS":  # Handle preflight request
+        response = jsonify({'status': 'ok'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        response.headers.add('Access-Control-Allow-Methods', 'POST')
+        return response
+
     try:
         data = request.json
         predictions = predictor.make_predictions(data)
