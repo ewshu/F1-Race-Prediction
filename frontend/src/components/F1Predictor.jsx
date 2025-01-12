@@ -156,7 +156,7 @@ const F1Predictor = () => {
   };
 
   try {
-    const response = await fetch('https://f1-predictor-backend.onrender.com',{
+    const response = await fetch('https://git.heroku.com/formula1.git',{
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
