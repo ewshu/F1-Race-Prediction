@@ -156,7 +156,7 @@ const F1Predictor = () => {
   };
 
   try {
-    const response = await fetch('https://formula1-50ed9ae2085f.herokuapp.com/',{
+    const response = await fetch('https://formula1-50ed9ae2085f.herokuapp.com/api/predict',{
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
