@@ -156,7 +156,7 @@ const F1Predictor = () => {
   };
 
   try {
-    const response = await fetch('https://f1-predictor-backend.onrender.com, {
+    const response = await fetch('https://api.render.com/deploy/srv-cu1id69u0jms738jfed0?key=xwfz6HdXMuo'{
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
