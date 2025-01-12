@@ -1,7 +1,7 @@
 import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from src.race_predictions import F1RacePredictor
+from src.models.race_predictions import F1RacePredictor
 
 app = Flask(__name__)
 CORS(app)
