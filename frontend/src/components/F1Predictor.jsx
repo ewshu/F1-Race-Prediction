@@ -4,13 +4,15 @@ const NumberInput = ({ label, value, onChange, field, step = 'any', min, max }) 
   const handleInputChange = (e) => {
     const inputValue = e.target.value;
 
-    // Allow numbers, decimal point, and ensure cursor stays
+    // Key improvement: Allow continuous input of numbers
     const sanitizedValue = inputValue.replace(/[^0-9.]/g, '');
 
-    // Prevent unnecessary re-renders
-    e.target.value = sanitizedValue;
+    // Ensure the input stays focused
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
 
-    // Call onChange with the sanitized value
+    // Call onChange with the full input value
     onChange(field, sanitizedValue);
   };
 
@@ -42,6 +44,10 @@ const NumberInput = ({ label, value, onChange, field, step = 'any', min, max }) 
           value={value === '' ? '' : value}
           onChange={handleInputChange}
           className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-f1-red focus:border-transparent pr-20"
+          onKeyDown={(e) => {
+            // Prevent losing focus
+            e.stopPropagation();
+          }}
           onFocus={(e) => {
             // Move cursor to end of input
             e.target.setSelectionRange(
@@ -131,59 +137,51 @@ const F1Predictor = () => {
   };
 
   const handleSubmit = async () => {
-    setLoading(true);
-    setError(null);
+  setLoading(true);
+  setError(null);
 
-    const requestData = {
-      GridPosition: formData.gridPosition,
-      Q1_seconds: formData.q1Time,
-      Q2_seconds: formData.q2Time,
-      Q3_seconds: formData.q3Time,
-      BestQualiTime: Math.min(...[formData.q1Time, formData.q2Time, formData.q3Time].filter(t => t > 0)),
-      PositionsGained: 0,
-      year: new Date().getFullYear(),
-      round: formData.raceRound,
-      Points: formData.driverPoints,
-      laps: formData.laps,
-      Constructor_encoded: formData.constructor,
-      raceName_encoded: formData.track,
-      TeamSeasonPoints: formData.teamPoints,
-      TeamAvgPoints: formData.teamAvgPoints,
-      RecentAvgPosition: formData.recentAvgPosition,
-      TrackExperience: formData.trackExperience || 0,
-      AvgTrackPosition: formData.avgTrackPosition || 10
-    };
-
-    console.log('Attempting to send request to:', 'https://your-backend-api.com/api/predict');
-    console.log('With data:', requestData);
-
-    try {
-      const response = await fetch('https://your-backend-api.com/api/predict', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData)
-      });
-
-      console.log('Response status:', response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.log('Error text:', errorText);
-        throw new Error(`Server error: ${errorText}`);
-      }
-
-      const data = await response.json();
-      console.log('Received predictions:', data);
-      setPredictions(data);
-    } catch (err) {
-      console.error('Full error:', err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+  const requestData = {
+    GridPosition: formData.gridPosition,
+    Q1_seconds: formData.q1Time,
+    Q2_seconds: formData.q2Time,
+    Q3_seconds: formData.q3Time,
+    BestQualiTime: Math.min(...[formData.q1Time, formData.q2Time, formData.q3Time].filter(t => t > 0)),
+    PositionsGained: 0,
+    year: new Date().getFullYear(),
+    round: formData.raceRound,
+    Points: formData.driverPoints,
+    laps: formData.laps,
+    Constructor_encoded: formData.constructor,
+    raceName_encoded: formData.track
   };
+
+  try {
+    const response = await fetch('/api/predict', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestData)
+    });
+
+    console.log('Response status:', response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.log('Error text:', errorText);
+      throw new Error(`Server error: ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log('Received predictions:', data);
+    setPredictions(data);
+  } catch (err) {
+    console.error('Full error:', err);
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Input field component with increment/decrement buttons
   const NumberInput = ({ label, value, onChange, field, step = 'any', min, max }) => {

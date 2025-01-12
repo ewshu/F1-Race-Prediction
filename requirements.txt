@@ -8,3 +8,9 @@ joblib~=1.4.2
 plotly~=5.24.1
 streamlit~=1.40.2
 scikit-learn~=1.5.2
+flask
+flask-cors
+numpy
+pandas
+scikit-learn
+joblib
