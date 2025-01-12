@@ -1,34 +1,28 @@
+import React, { useState } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { CarFront, Flag, Timer, Trophy } from 'lucide-react';
+
+// NumberInput Component
 const NumberInput = ({ label, value, onChange, field, step = 'any', min, max }) => {
   const inputRef = React.useRef(null);
 
   const handleInputChange = (e) => {
     const inputValue = e.target.value;
-
-    // Key improvement: Allow continuous input of numbers
     const sanitizedValue = inputValue.replace(/[^0-9.]/g, '');
-
-    // Ensure the input stays focused
     if (inputRef.current) {
       inputRef.current.focus();
     }
-
-    // Call onChange with the full input value
     onChange(field, sanitizedValue);
   };
 
   const handleIncrement = (increment) => {
     const currentValue = parseFloat(value) || 0;
     const stepValue = step === 'any' ? 0.1 : parseFloat(step);
+    const newValue = increment ? currentValue + stepValue : currentValue - stepValue;
 
-    const newValue = increment
-      ? currentValue + stepValue
-      : currentValue - stepValue;
-
-    // Ensure input stays focused
     if (inputRef.current) {
       inputRef.current.focus();
     }
-
     onChange(field, newValue.toFixed(2));
   };
 
@@ -44,16 +38,9 @@ const NumberInput = ({ label, value, onChange, field, step = 'any', min, max }) 
           value={value === '' ? '' : value}
           onChange={handleInputChange}
           className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-f1-red focus:border-transparent pr-20"
-          onKeyDown={(e) => {
-            // Prevent losing focus
-            e.stopPropagation();
-          }}
+          onKeyDown={(e) => e.stopPropagation()}
           onFocus={(e) => {
-            // Move cursor to end of input
-            e.target.setSelectionRange(
-              e.target.value.length,
-              e.target.value.length
-            );
+            e.target.setSelectionRange(e.target.value.length, e.target.value.length);
           }}
         />
         <div className="absolute right-0 top-0 h-full flex">
@@ -76,9 +63,6 @@ const NumberInput = ({ label, value, onChange, field, step = 'any', min, max }) 
     </div>
   );
 };
-import React, { useState } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { CarFront, Flag, Timer, Trophy } from 'lucide-react';
 
 const F1Predictor = () => {
   const [formData, setFormData] = useState({
@@ -114,7 +98,6 @@ const F1Predictor = () => {
     "Qatar", "USA", "Mexico", "Brazil", "Vegas", "Abu Dhabi"
   ];
 
-  // Modified handleChange to allow empty values
   const handleChange = (name, value) => {
     setFormData(prev => ({
       ...prev,
@@ -122,19 +105,6 @@ const F1Predictor = () => {
     }));
   };
 
-  // New increment/decrement helper
-  const handleIncrement = (field, increment) => {
-    const step = ['gridPosition', 'teamPoints', 'driverPoints', 'laps', 'raceRound'].includes(field) ? 1 : 0.1;
-    let currentValue = formData[field] || 0;
-    const newValue = increment ? currentValue + step : currentValue - step;
-
-    // Apply min/max constraints for grid position
-    if (field === 'gridPosition') {
-      handleChange(field, Math.min(Math.max(1, newValue), 20));
-    } else {
-      handleChange(field, Number(newValue.toFixed(2)));
-    }
-  };
   const handleSubmit = async () => {
     setLoading(true);
     setError(null);
@@ -159,96 +129,30 @@ const F1Predictor = () => {
       AvgTrackPosition: formData.avgTrackPosition || 10
     };
 
-    console.log('Attempting to send request to Heroku');
+    try {
+      console.log('Sending request to:', 'https://formula1-50ed9ae2085f.herokuapp.com/api/predict');
+      const response = await fetch('https://formula1-50ed9ae2085f.herokuapp.com/api/predict', {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(requestData)
+      });
 
-    const handleSubmit = async () => {  // Add 'async' here
-  setLoading(true);
-  setError(null);
-
-  try {
-    console.log('Sending request to:', 'https://formula1-50ed9ae2085f.herokuapp.com/api/predict');
-    const response = await fetch('https://formula1-50ed9ae2085f.herokuapp.com/api/predict', {
-      method: 'POST',
-      mode: 'cors',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(requestData)
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log('Received data:', data);
+      setPredictions(data);
+    } catch (error) {
+      console.error('Error:', error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
     }
-    const data = await response.json();
-    console.log('Received data:', data);
-    setPredictions(data);
-  } catch (error) {
-    console.error('Error:', error);
-    setError(error.message);
-  } finally {
-    setLoading(false);
-  }
-};
-
-    console.log('Response status:', response.status);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.log('Error response:', errorText);
-      throw new Error(`Failed to get predictions: ${errorText}`);
-    }
-
-    const data = await response.json();
-    console.log('Success! Received data:', data);
-    setPredictions(data);
-  } catch (err) {
-    console.error('Full error details:', err);
-    setError(err.message);
-  } finally {
-    setLoading(false);
-  }
-};
-  // Input field component with increment/decrement buttons
-  const NumberInput = ({ label, value, onChange, field, step = 'any', min, max }) => {
-    const handleInputChange = (e) => {
-      const inputValue = e.target.value;
-      // Allow only numbers, decimal point, and empty string
-      const sanitizedValue = inputValue.replace(/[^0-9.]/g, '');
-      onChange(field, sanitizedValue);
-    };
-
-    return (
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-2">
-          {label}
-        </label>
-        <div className="relative">
-          <input
-            type="text"
-            value={value === '' ? '' : value}
-            onChange={handleInputChange}
-            className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-f1-red focus:border-transparent pr-20"
-          />
-          <div className="absolute right-0 top-0 h-full flex">
-            <button
-              type="button"
-              onClick={() => handleIncrement(field, false)}
-              className="px-3 h-full hover:bg-white/10 text-gray-300 hover:text-white border-l border-white/20"
-            >
-              -
-            </button>
-            <button
-              type="button"
-              onClick={() => handleIncrement(field, true)}
-              className="px-3 h-full hover:bg-white/10 text-gray-300 hover:text-white border-l border-white/20"
-            >
-              +
-            </button>
-          </div>
-        </div>
-      </div>
-    );
   };
 
   return (
