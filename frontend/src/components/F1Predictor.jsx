@@ -136,53 +136,54 @@ const F1Predictor = () => {
     }
   };
   const handleSubmit = async () => {
-  setLoading(true);
-  setError(null);
+    setLoading(true);
+    setError(null);
 
-  const requestData = {
-    GridPosition: formData.gridPosition,
-    Q1_seconds: formData.q1Time,
-    Q2_seconds: formData.q2Time,
-    Q3_seconds: formData.q3Time,
-    BestQualiTime: Math.min(...[formData.q1Time, formData.q2Time, formData.q3Time].filter(t => t > 0)),
-    PositionsGained: 0,
-    year: new Date().getFullYear(),
-    round: formData.raceRound,
-    Points: formData.driverPoints,
-    laps: formData.laps,
-    Constructor_encoded: formData.constructor,
-    raceName_encoded: formData.track,
-    TeamSeasonPoints: formData.teamPoints,
-    TeamAvgPoints: formData.teamAvgPoints,
-    RecentAvgPosition: formData.recentAvgPosition,
-    TrackExperience: formData.trackExperience || 0,
-    AvgTrackPosition: formData.avgTrackPosition || 10
-  };
+    const requestData = {
+      GridPosition: formData.gridPosition,
+      Q1_seconds: formData.q1Time,
+      Q2_seconds: formData.q2Time,
+      Q3_seconds: formData.q3Time,
+      BestQualiTime: Math.min(...[formData.q1Time, formData.q2Time, formData.q3Time].filter(t => t > 0)),
+      PositionsGained: 0,
+      year: new Date().getFullYear(),
+      round: formData.raceRound,
+      Points: formData.driverPoints,
+      laps: formData.laps,
+      Constructor_encoded: formData.constructor,
+      raceName_encoded: formData.track,
+      TeamSeasonPoints: formData.teamPoints,
+      TeamAvgPoints: formData.teamAvgPoints,
+      RecentAvgPosition: formData.recentAvgPosition,
+      TrackExperience: formData.trackExperience || 0,
+      AvgTrackPosition: formData.avgTrackPosition || 10
+    };
 
-  console.log('Attempting to send request to Heroku');
+    console.log('Attempting to send request to Heroku');
 
-  try {
-    console.log('Sending request to:', 'https://formula1-50ed9ae2085f.herokuapp.com/api/predict');
-    const response = await fetch('https://formula1-50ed9ae2085f.herokuapp.com/api/predict', {
-      method: 'POST',
-      mode: 'cors',  // Add this
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(requestData)
-    });
+    try {
+      console.log('Sending request to:', 'https://formula1-50ed9ae2085f.herokuapp.com/api/predict');
+      const response = await fetch('https://formula1-50ed9ae2085f.herokuapp.com/api/predict', {
+        method: 'POST',
+        mode: 'cors',  // Add this
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(requestData)
+      });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log('Received data:', data);
+      setPredictions(data);
+    } catch (error) {
+      console.error('Error:', error);
+      setError(error.message);
     }
-    const data = await response.json();
-    console.log('Received data:', data);
-    setPredictions(data);
-} catch (error) {
-    console.error('Error:', error);
-    setError(error.message);
-}
+  };
 
     console.log('Response status:', response.status);
 
