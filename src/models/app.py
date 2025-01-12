@@ -4,27 +4,30 @@ from race_predictions import F1RacePredictor
 import os
 
 app = Flask(__name__)
-CORS(app, resources={
-    r"/*": {
-        "origins": ["https://f1-winner-prediction.vercel.app"],
-        "methods": ["POST", "OPTIONS"],
-        "allow_headers": ["Content-Type"],
-        "max_age": 3600
-    }
-})
+# Most permissive CORS setup
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 predictor = F1RacePredictor()
 
-@app.route('/api/predict', methods=['POST'])
+@app.route('/api/predict', methods=['POST', 'OPTIONS'])
 def predict():
+    # Handle preflight
+    if request.method == "OPTIONS":
+        response = jsonify({'status': 'ok'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', '*')
+        response.headers.add('Access-Control-Allow-Methods', '*')
+        return response
+
     try:
         data = request.json
-        print("Received data:", data)  # Debug print
+        print("Received data:", data)  # Debug log
         predictions = predictor.make_predictions(data)
-        print("Generated predictions:", predictions)  # Debug print
-        return jsonify(predictions)
+        response = jsonify(predictions)
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
     except Exception as e:
-        print("Error:", str(e))  # Debug print
+        print(f"Error occurred: {str(e)}")  # Debug log
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':

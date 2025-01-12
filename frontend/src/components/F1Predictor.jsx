@@ -162,15 +162,27 @@ const F1Predictor = () => {
   console.log('Attempting to send request to Heroku');
 
   try {
-    console.log('Request data:', requestData);
-
+    console.log('Sending request to:', 'https://formula1-50ed9ae2085f.herokuapp.com/api/predict');
     const response = await fetch('https://formula1-50ed9ae2085f.herokuapp.com/api/predict', {
       method: 'POST',
+      mode: 'cors',  // Add this
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
       body: JSON.stringify(requestData)
     });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    console.log('Received data:', data);
+    setPredictions(data);
+} catch (error) {
+    console.error('Error:', error);
+    setError(error.message);
+}
 
     console.log('Response status:', response.status);
 
