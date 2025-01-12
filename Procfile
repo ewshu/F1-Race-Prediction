@@ -1,1 +1,1 @@
-web: python models/app.py
+web: python src/models/app.py
