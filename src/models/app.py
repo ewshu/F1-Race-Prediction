@@ -1,33 +1,50 @@
 import os
+import sys
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from race_predictions import F1RacePredictor
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)
 
-print("Starting app initialization...")  # Debug print
+logger.info("Starting app initialization...")
 
 try:
-    print("Attempting to initialize predictor...")  # Debug print
+    logger.info("Current directory: %s", os.getcwd())
+    logger.info("Directory contents: %s", os.listdir())
+
+    logger.info("Attempting to import F1RacePredictor...")
+    from race_predictions import F1RacePredictor
+
+    logger.info("Initializing predictor...")
     predictor = F1RacePredictor()
-    print("Predictor initialized successfully!")  # Debug print
+    logger.info("Predictor initialized successfully!")
+
 except Exception as e:
-    print(f"Error initializing predictor: {str(e)}")  # Debug print
+    logger.error("Error during initialization: %s", str(e))
+    logger.error("Full error: %s", str(sys.exc_info()))
     raise
+
 
 @app.route('/api/predict', methods=['POST'])
 def predict():
     try:
-        print("Received request")  # Debug print
+        logger.info("Received prediction request")
         data = request.json
-        print("Request data:", data)  # Debug print
+        logger.info("Request data: %s", data)
+
         predictions = predictor.make_predictions(data)
-        print("Generated predictions:", predictions)  # Debug print
+        logger.info("Generated predictions: %s", predictions)
+
         return jsonify(predictions)
     except Exception as e:
-        print(f"Error in predict route: {str(e)}")  # Debug print
+        logger.error("Error in predict route: %s", str(e))
         return jsonify({'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8000))

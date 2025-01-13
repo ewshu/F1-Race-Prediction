@@ -1,161 +1,153 @@
 import pandas as pd
+import numpy as np
 import joblib
 import os
+import logging
 from datetime import datetime
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class F1RacePredictor:
     def __init__(self):
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        project_root = os.path.dirname(os.path.dirname(current_dir))
-        self.models_dir = os.path.join(project_root, 'src', 'models', 'output')
+        logger.info("Initializing F1RacePredictor")
+        self.setup_paths()
+        self.load_models()
 
-        # Load models and scalers
+    def setup_paths(self):
+        """Set up paths for model files"""
         try:
-            self.models = {
-                'Race Winner': joblib.load(os.path.join(self.models_dir, 'race winner_random_forest_model.joblib')),
-                'Podium': joblib.load(os.path.join(self.models_dir, 'podium_random_forest_model.joblib')),
-                'Points Finish': joblib.load(os.path.join(self.models_dir, 'points finish_random_forest_model.joblib')),
-                'Top 5': joblib.load(os.path.join(self.models_dir, 'top 5_random_forest_model.joblib'))
-            }
+            # Simplified path handling for Heroku
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            self.models_dir = os.path.join(current_dir, 'output')
+            logger.info(f"Models directory: {self.models_dir}")
 
-            self.scalers = {
-                'Race Winner': joblib.load(os.path.join(self.models_dir, 'race winner_scaler.joblib')),
-                'Podium': joblib.load(os.path.join(self.models_dir, 'podium_scaler.joblib')),
-                'Points Finish': joblib.load(os.path.join(self.models_dir, 'points finish_scaler.joblib')),
-                'Top 5': joblib.load(os.path.join(self.models_dir, 'top 5_scaler.joblib'))
-            }
-
-            # Load feature information
-            self.feature_info = joblib.load(os.path.join(self.models_dir, 'feature_info.joblib'))
-            print("Models, scalers, and feature information loaded successfully!")
+            # Log directory contents for debugging
+            if os.path.exists(self.models_dir):
+                logger.info(f"Models directory contents: {os.listdir(self.models_dir)}")
+            else:
+                logger.error(f"Models directory not found: {self.models_dir}")
+                raise FileNotFoundError(f"Models directory not found: {self.models_dir}")
 
         except Exception as e:
-            print(f"Error loading models: {e}")
+            logger.error(f"Error in setup_paths: {str(e)}")
             raise
 
-    def get_user_input(self):
-        """Get race information from user"""
-        print("\n=== F1 Race Prediction System ===")
-        print("\nPlease enter the following information:")
-
-        data = {}
-
+    def load_models(self):
+        """Load all necessary models and scalers"""
         try:
-            # Grid and Qualifying
-            data['GridPosition'] = int(input("\nStarting Grid Position (1-20): "))
-            data['PositionsGained'] = 0  # This will be calculated later
+            # Define model files
+            model_files = {
+                'Race Winner': 'race winner_random_forest_model.joblib',
+                'Podium': 'podium_random_forest_model.joblib',
+                'Points Finish': 'points finish_random_forest_model.joblib',
+                'Top 5': 'top 5_random_forest_model.joblib'
+            }
 
-            # Qualifying Times
-            data['Q1_seconds'] = float(input("Q1 Time in seconds (e.g., 82.5): "))
-            data['Q2_seconds'] = float(input("Q2 Time in seconds (or 0 if didn't participate): "))
-            data['Q3_seconds'] = float(input("Q3 Time in seconds (or 0 if didn't participate): "))
+            scaler_files = {
+                'Race Winner': 'race winner_scaler.joblib',
+                'Podium': 'podium_scaler.joblib',
+                'Points Finish': 'points finish_scaler.joblib',
+                'Top 5': 'top 5_scaler.joblib'
+            }
 
-            # Best Qualifying Time
-            quali_times = [t for t in [data['Q1_seconds'], data['Q2_seconds'], data['Q3_seconds']] if t > 0]
-            data['BestQualiTime'] = min(quali_times) if quali_times else data['Q1_seconds']
+            # Load models
+            self.models = {}
+            for name, filename in model_files.items():
+                path = os.path.join(self.models_dir, filename)
+                logger.info(f"Loading model: {path}")
+                if not os.path.exists(path):
+                    raise FileNotFoundError(f"Model file not found: {path}")
+                self.models[name] = joblib.load(path)
 
-            # Race Information
-            current_year = datetime.now().year
-            data['year'] = int(input(f"Year of race ({current_year}): ") or current_year)
-            data['round'] = int(input("Round number of the season (1-23): "))
-            data['Points'] = 0  # This will be calculated based on position
-            data['laps'] = int(input("Number of laps in the race: "))
+            # Load scalers
+            self.scalers = {}
+            for name, filename in scaler_files.items():
+                path = os.path.join(self.models_dir, filename)
+                logger.info(f"Loading scaler: {path}")
+                if not os.path.exists(path):
+                    raise FileNotFoundError(f"Scaler file not found: {path}")
+                self.scalers[name] = joblib.load(path)
 
-            # Encoded Categories
-            print("\nConstructor codes:")
-            print("0: Mercedes, 1: Red Bull, 2: Ferrari, 3: McLaren, 4: Alpine")
-            print("5: AlphaTauri, 6: Aston Martin, 7: Williams, 8: Alfa Romeo, 9: Haas")
-            data['Constructor_encoded'] = int(input("\nEnter constructor code (0-9): "))
+            # Load feature information
+            feature_info_path = os.path.join(self.models_dir, 'feature_info.joblib')
+            if not os.path.exists(feature_info_path):
+                raise FileNotFoundError(f"Feature info file not found: {feature_info_path}")
+            self.feature_info = joblib.load(feature_info_path)
 
-            print("\nTrack codes:")
-            print("Enter a number between 0-21 for different tracks")
-            data['raceName_encoded'] = int(input("Enter track code (0-21): "))
+            logger.info("All models and scalers loaded successfully!")
 
-            return data
+        except Exception as e:
+            logger.error(f"Error loading models: {str(e)}")
+            raise
 
-        except ValueError as e:
-            print(f"\nError: Please enter valid numerical values. {str(e)}")
-            return None
+    def validate_input(self, input_data):
+        """Validate input data format and values"""
+        required_fields = [
+            'GridPosition', 'Q1_seconds', 'Q2_seconds', 'Q3_seconds',
+            'year', 'round', 'laps', 'Constructor_encoded', 'raceName_encoded',
+            'Points', 'TeamSeasonPoints', 'TeamAvgPoints', 'RecentAvgPosition'
+        ]
+
+        # Check for missing fields
+        missing_fields = [field for field in required_fields if field not in input_data]
+        if missing_fields:
+            raise ValueError(f"Missing required fields: {missing_fields}")
+
+        # Validate value ranges
+        if not (1 <= input_data['GridPosition'] <= 20):
+            raise ValueError("Grid position must be between 1 and 20")
+
+        if not (0 <= input_data['Constructor_encoded'] <= 9):
+            raise ValueError("Constructor code must be between 0 and 9")
+
+        if not (0 <= input_data['raceName_encoded'] <= 21):
+            raise ValueError("Track code must be between 0 and 21")
+
+        return True
 
     def make_predictions(self, input_data):
         """Make predictions using all models"""
-        predictions = {}
+        try:
+            # Validate input
+            self.validate_input(input_data)
 
-        # Convert input to DataFrame
-        input_df = pd.DataFrame([input_data])
+            # Add BestQualiTime if not present
+            if 'BestQualiTime' not in input_data:
+                quali_times = [input_data[f'Q{i}_seconds'] for i in range(1, 4) if input_data[f'Q{i}_seconds'] > 0]
+                input_data['BestQualiTime'] = min(quali_times) if quali_times else input_data['Q1_seconds']
 
-        # Ensure columns are in the correct order
-        input_df = input_df[self.feature_info['feature_columns']]
+            # Convert input to DataFrame
+            input_df = pd.DataFrame([input_data])
 
-        for target, model in self.models.items():
-            try:
-                # Scale the input data using the corresponding scaler
-                scaled_input = self.scalers[target].transform(input_df)
+            # Ensure columns are in correct order
+            input_df = input_df[self.feature_info['feature_columns']]
 
-                # Get prediction probabilities
-                prob = model.predict_proba(scaled_input)[0][1]
-                predictions[target] = prob
+            logger.info(f"Input data processed: {input_df.to_dict('records')[0]}")
 
-            except Exception as e:
-                print(f"Error making {target} prediction: {e}")
-                predictions[target] = None
+            predictions = {}
+            for target, model in self.models.items():
+                try:
+                    # Scale input data
+                    scaled_input = self.scalers[target].transform(input_df)
 
-        return predictions
+                    # Get prediction probability
+                    prob = model.predict_proba(scaled_input)[0][1]
+                    predictions[target] = float(prob)  # Convert to float for JSON serialization
 
-    def display_predictions(self, predictions):
-        """Display predictions in a user-friendly format"""
-        print("\n=== Race Predictions ===")
+                except Exception as e:
+                    logger.error(f"Error predicting {target}: {str(e)}")
+                    predictions[target] = None
 
-        valid_predictions = {k: v for k, v in predictions.items() if v is not None}
+            logger.info(f"Generated predictions: {predictions}")
+            return predictions
 
-        if not valid_predictions:
-            print("No valid predictions could be made.")
-            return
-
-        # Sort predictions by probability
-        sorted_predictions = dict(sorted(valid_predictions.items(), key=lambda x: x[1], reverse=True))
-
-        print("\nPredicted Probabilities:")
-        for outcome, probability in sorted_predictions.items():
-            percentage = probability * 100
-            bar_length = int(percentage / 2)
-            bar = '█' * bar_length + '░' * (50 - bar_length)
-            print(f"\n{outcome}:")
-            print(f"{bar} {percentage:.1f}%")
-
-        # Overall interpretation
-        top_outcome = max(sorted_predictions.items(), key=lambda x: x[1])
-        print(f"\nBest predicted outcome: {top_outcome[0]} ({top_outcome[1] * 100:.1f}% probability)")
-
-        if top_outcome[1] > 0.5:
-            print("Strong chance of achieving this result!")
-        elif top_outcome[1] > 0.3:
-            print("Moderate chances of success.")
-        else:
-            print("This might be a challenging race.")
-
-    def run_prediction(self):
-        """Main prediction workflow"""
-        while True:
-            input_data = self.get_user_input()
-
-            if input_data is None:
-                retry = input("\nWould you like to try again? (yes/no): ")
-                if retry.lower() not in ['y', 'yes']:
-                    break
-                continue
-
-            predictions = self.make_predictions(input_data)
-            self.display_predictions(predictions)
-
-            another = input("\nWould you like to make another prediction? (yes/no): ")
-            if another.lower() not in ['y', 'yes']:
-                break
-
-        print("\nThank you for using the F1 Race Predictor!")
+        except Exception as e:
+            logger.error(f"Error in make_predictions: {str(e)}")
+            raise
 
 
 if __name__ == "__main__":
     predictor = F1RacePredictor()
-    predictor.run_prediction()
