@@ -1,1 +1,10 @@
-.DS_Store
+# .gitignore
+__pycache__/
+*.pyc
+.env
+.venv/
+venv/
+*.pdf
+*.xlsx
+# DO NOT ignore model files
+!src/models/output/*.joblib
