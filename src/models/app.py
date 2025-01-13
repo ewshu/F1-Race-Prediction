@@ -4,8 +4,7 @@ from flask_cors import CORS
 from race_predictions import F1RacePredictor
 
 app = Flask(__name__)
-CORS(app)
-
+CORS(app, resources={r"/api/*": {"origins": "*"}})
 predictor = F1RacePredictor()
 
 @app.route('/api/predict', methods=['POST'])
