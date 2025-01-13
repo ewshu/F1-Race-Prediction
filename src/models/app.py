@@ -1,33 +1,32 @@
+import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from race_predictions import F1RacePredictor
-import os
 
 app = Flask(__name__)
-# Most permissive CORS setup
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app)
 
-predictor = F1RacePredictor()
+print("Starting app initialization...")  # Debug print
 
-@app.route('/api/predict', methods=['POST', 'OPTIONS'])
+try:
+    print("Attempting to initialize predictor...")  # Debug print
+    predictor = F1RacePredictor()
+    print("Predictor initialized successfully!")  # Debug print
+except Exception as e:
+    print(f"Error initializing predictor: {str(e)}")  # Debug print
+    raise
+
+@app.route('/api/predict', methods=['POST'])
 def predict():
-    # Handle preflight
-    if request.method == "OPTIONS":
-        response = jsonify({'status': 'ok'})
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        response.headers.add('Access-Control-Allow-Headers', '*')
-        response.headers.add('Access-Control-Allow-Methods', '*')
-        return response
-
     try:
+        print("Received request")  # Debug print
         data = request.json
-        print("Received data:", data)  # Debug log
+        print("Request data:", data)  # Debug print
         predictions = predictor.make_predictions(data)
-        response = jsonify(predictions)
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        return response
+        print("Generated predictions:", predictions)  # Debug print
+        return jsonify(predictions)
     except Exception as e:
-        print(f"Error occurred: {str(e)}")  # Debug log
+        print(f"Error in predict route: {str(e)}")  # Debug print
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
