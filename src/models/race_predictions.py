@@ -3,7 +3,11 @@ import numpy as np
 import joblib
 import os
 import logging
-from datetime import datetime
+import warnings
+
+# Suppress specific warnings
+warnings.filterwarnings("ignore", category=UserWarning)
+warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -19,16 +23,13 @@ class F1RacePredictor:
     def setup_paths(self):
         """Set up paths for model files"""
         try:
-            # Simplified path handling for Heroku
             current_dir = os.path.dirname(os.path.abspath(__file__))
             self.models_dir = os.path.join(current_dir, 'output')
             logger.info(f"Models directory: {self.models_dir}")
 
-            # Log directory contents for debugging
             if os.path.exists(self.models_dir):
                 logger.info(f"Models directory contents: {os.listdir(self.models_dir)}")
             else:
-                logger.error(f"Models directory not found: {self.models_dir}")
                 raise FileNotFoundError(f"Models directory not found: {self.models_dir}")
 
         except Exception as e:
@@ -36,9 +37,8 @@ class F1RacePredictor:
             raise
 
     def load_models(self):
-        """Load all necessary models and scalers"""
+        """Load all necessary models and scalers with enhanced error handling"""
         try:
-            # Define model files
             model_files = {
                 'Race Winner': 'race winner_random_forest_model.joblib',
                 'Podium': 'podium_random_forest_model.joblib',
@@ -53,36 +53,59 @@ class F1RacePredictor:
                 'Top 5': 'top 5_scaler.joblib'
             }
 
+            # Explicitly import numpy to ensure compatibility
+            import numpy
+
             # Load models
             self.models = {}
             for name, filename in model_files.items():
                 path = os.path.join(self.models_dir, filename)
-                logger.info(f"Loading model: {path}")
-                if not os.path.exists(path):
-                    raise FileNotFoundError(f"Model file not found: {path}")
-                self.models[name] = joblib.load(path)
+                logger.info(f"Attempting to load model: {path}")
+                try:
+                    # Use a more robust loading method
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore")
+                        model = joblib.load(path)
+                    self.models[name] = model
+                    logger.info(f"Successfully loaded {name} model")
+                except Exception as e:
+                    logger.error(f"Error loading {name} model: {e}")
+                    raise
 
             # Load scalers
             self.scalers = {}
             for name, filename in scaler_files.items():
                 path = os.path.join(self.models_dir, filename)
-                logger.info(f"Loading scaler: {path}")
-                if not os.path.exists(path):
-                    raise FileNotFoundError(f"Scaler file not found: {path}")
-                self.scalers[name] = joblib.load(path)
+                logger.info(f"Attempting to load scaler: {path}")
+                try:
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore")
+                        scaler = joblib.load(path)
+                    self.scalers[name] = scaler
+                    logger.info(f"Successfully loaded {name} scaler")
+                except Exception as e:
+                    logger.error(f"Error loading {name} scaler: {e}")
+                    raise
 
             # Load feature information
             feature_info_path = os.path.join(self.models_dir, 'feature_info.joblib')
             if not os.path.exists(feature_info_path):
                 raise FileNotFoundError(f"Feature info file not found: {feature_info_path}")
-            self.feature_info = joblib.load(feature_info_path)
+
+            try:
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    self.feature_info = joblib.load(feature_info_path)
+                logger.info("Feature info loaded successfully!")
+            except Exception as e:
+                logger.error(f"Error loading feature info: {e}")
+                raise
 
             logger.info("All models and scalers loaded successfully!")
 
         except Exception as e:
-            logger.error(f"Error loading models: {str(e)}")
+            logger.error(f"Critical error in load_models: {e}")
             raise
-
     def validate_input(self, input_data):
         """Validate input data format and values"""
         required_fields = [

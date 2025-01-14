@@ -1,9 +1,0 @@
-# Create or update .gitignore
-echo "
-__pycache__/
-*.pyc
-.env
-.venv/
-venv/
-.DS_Store
-" > .gitignore

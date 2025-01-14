@@ -130,8 +130,12 @@ const F1Predictor = () => {
     };
 
     try {
-      console.log('Sending request to:', 'https://formula1-50ed9ae2085f.herokuapp.com/api/predict');
-      const response = await fetch('https://formula1-50ed9ae2085f.herokuapp.com/api/predict', {
+      // Use environment variable for API URL
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+      console.log('Sending request to:', `${API_BASE_URL}/api/predict`);
+
+      const response = await fetch(`${API_BASE_URL}/api/predict`, {
         method: 'POST',
         mode: 'cors',
         headers: {
@@ -142,13 +146,15 @@ const F1Predictor = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
+
       const data = await response.json();
       console.log('Received data:', data);
       setPredictions(data);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Detailed fetch error:', error);
       setError(error.message);
     } finally {
       setLoading(false);
